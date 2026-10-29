@@ -15,7 +15,7 @@ from src.inference.test_utils import VolumeSegmentationTester
 from src.models.train_utils import load_weights_from_lightning_checkpoint
 
 
-MODEL_NAME = "transunet_1L"
+MODEL_NAME = "transunet"
 
 
 if __name__ == "__main__":

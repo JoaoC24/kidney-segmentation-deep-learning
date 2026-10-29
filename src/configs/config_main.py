@@ -10,7 +10,8 @@ COMET_API_KEY = os.getenv("COMET_API_KEY", "")
 COMET_ONLINE = True
 
 # Dataset
-DATA_DIR = ROOT_DIR / "data" / "preprocessed"
+DATA_DIR = ROOT_DIR / "data" / "preprocessed_slices"
+VOLUME_DATA_DIR = ROOT_DIR / "data" / "preprocessed_volumes"
 NUM_WORKERS = 4
 PERSISTENT_WORKERS = False
 
@@ -26,7 +27,7 @@ IMAGE_SIZE = int(128)
 BATCH_SIZE = int(32)
 MAX_EPOCHS = int(250)
 MIN_EPOCHS = int(1)
-MODEL_SAVE_DIRECTORY = Path(ROOT_DIR / "ckpts" / "lr_experiment" / "1e-4")
+MODEL_SAVE_DIRECTORY = ROOT_DIR / "ckpts"
 SEED = int(42)
 MONITOR_PARAM = "val_dice"
 MONITOR_MODE = "max"

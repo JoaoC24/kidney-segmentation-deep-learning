@@ -1,8 +1,8 @@
 from src.configs.config_main import ROOT_DIR
 
 
-MODEL_NAME = "transunet_1L"
-DATA_DIR = ROOT_DIR / "data" / "preprocessed"
+MODEL_NAME = "transunet"
+DATA_DIR = ROOT_DIR / "data" / "preprocessed_volumes"
 NUM_WORKERS = 4
 ACCELERATOR = "auto"
 DEVICES = "auto"
@@ -16,7 +16,7 @@ TEST_SLICE_BATCH_SIZE = 32
 SAVE_INFERENCE_VOLUMES = True
 
 # Edit this path to choose the checkpoint tested by test_transunet.py.
-CHECKPOINT_PATH = ROOT_DIR / "ckpts" / "best" / "transunet_1L.ckpt"
+CHECKPOINT_PATH = ROOT_DIR / "ckpts" / "best" / "transunet.ckpt"
 
 METRICS_DIR = ROOT_DIR / "results" / "metrics" / "transunet"
 SUMMARIES_DIR = ROOT_DIR / "results" / "summaries" / "transunet"

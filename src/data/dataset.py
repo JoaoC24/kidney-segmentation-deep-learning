@@ -345,7 +345,7 @@ class VolumeSegmentationDataset(Dataset):
 
     def __init__(
         self,
-        data_dir: str | Path,
+        data_dir: str | Path = config.VOLUME_DATA_DIR / "test",
         image_size: int = 128,
         multiclass: bool = False,
         slice_axis: int = 0,
@@ -411,11 +411,11 @@ class VolumeSegmentationDataset(Dataset):
 
 
 class VolumeSegmentationDataModule(L.LightningDataModule):
-    """Inference datamodule reading 3D test volumes from DATA_DIR/test."""
+    """Inference datamodule reading 3D test volumes from VOLUME_DATA_DIR/test."""
 
     def __init__(
         self,
-        data_dir: str | Path = config.DATA_DIR,
+        data_dir: str | Path = config.VOLUME_DATA_DIR,
         multiclass: bool = False,
         image_size: int = 128,
         num_workers: int = 4,

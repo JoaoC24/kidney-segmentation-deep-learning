@@ -2,7 +2,7 @@ from src.configs.config_main import ROOT_DIR
 
 
 MODEL_NAME = "unet"
-DATA_DIR = ROOT_DIR / "data" / "preprocessed"
+DATA_DIR = ROOT_DIR / "data" / "preprocessed_volumes"
 NUM_WORKERS = 4
 ACCELERATOR = "auto"
 DEVICES = "auto"

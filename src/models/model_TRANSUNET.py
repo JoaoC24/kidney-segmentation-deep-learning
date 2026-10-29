@@ -16,7 +16,7 @@ class LitTransUNet(L.LightningModule):
         vit_patch_size: int | None = 4,
         vit_num_patches: int | None = None,
         vit_embed_dim: int = 384,
-        vit_depth: int = 6,
+        vit_depth: int = 1,
         vit_num_heads: int = 6,
         vit_mlp_ratio: float = 4.0,
         dropout: float = 0.0,

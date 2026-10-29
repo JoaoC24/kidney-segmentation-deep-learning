@@ -29,9 +29,15 @@ desktop.ini
 /data/raw/**
 !/data/raw/**/
 !/data/raw/**/.gitkeep
-/data/preprocessed/**
-!/data/preprocessed/**/
-!/data/preprocessed/**/.gitkeep
+/data/preprocessed_volumes/**
+!/data/preprocessed_volumes/**/
+!/data/preprocessed_volumes/**/.gitkeep
+/data/preprocessed_slices/**
+!/data/preprocessed_slices/**/
+!/data/preprocessed_slices/**/.gitkeep
+/data/interim/**
+!/data/interim/**/
+!/data/interim/**/.gitkeep
 
 # Model checkpoints and weights are kept outside Git
 /ckpts/**

@@ -20,7 +20,7 @@ class TransUNet(nn.Module):
         vit_patch_size: int | None = 4, # parece me bem: 16 patches de 16 de lado cada um
         vit_num_patches: int | None = None,
         vit_embed_dim: int = 384, # talvez uma potencia de 2, tipo 512 para ser o dobro do c3 (que entra e sai)
-        vit_depth: int = 6, # vai ser 1 provavelmente
+        vit_depth: int = 1,
         vit_num_heads: int = 6, # 4 ou 8 maybe
         vit_mlp_ratio: float = 4.0, # ver no que altera
         dropout: float = 0.0, # considerar, igual para o de baixo
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         image_size=128,
         vit_patch_size=4,
         vit_embed_dim=384,
-        vit_depth=6,
+        vit_depth=1,
         vit_num_heads=6,
     )
     x = torch.randn(2, 1, 128, 128)

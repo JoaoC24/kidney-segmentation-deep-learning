@@ -149,7 +149,7 @@ class VisionTransformerFeatureMap(nn.Module):
         patch_size: int | None = 16,
         num_patches: int | None = None,
         embed_dim: int = 256,
-        depth: int = 6,
+        depth: int = 1,
         num_heads: int = 8,
         mlp_ratio: float = 4.0,
         out_channels: int | None = None,

@@ -1,0 +1,8 @@
+numpy
+scipy
+scikit-image
+SimpleITK
+torch
+lightning
+torchmetrics
+comet-ml

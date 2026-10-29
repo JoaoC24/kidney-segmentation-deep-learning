@@ -22,5 +22,5 @@ FOCAL_GAMMAS = [GAMMA]
 TRANSFER_CHECKPOINT_PATH = None
 
 # TransUNet architecture setting
-VIT_DEPTH = 6
+VIT_DEPTH = 1
 VIT_DEPTHS = [VIT_DEPTH]
