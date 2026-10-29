@@ -1,0 +1,53 @@
+# Secrets and local environment files
+.env
+.env.*
+!.env.example
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local datasets; keep the empty directory structure only
+/data/raw/**
+!/data/raw/**/
+!/data/raw/**/.gitkeep
+/data/preprocessed/**
+!/data/preprocessed/**/
+!/data/preprocessed/**/.gitkeep
+
+# Model checkpoints and weights are kept outside Git
+/ckpts/**
+!/ckpts/**/
+!/ckpts/**/.gitkeep
+*.ckpt
+*.pth
+*.pt
+*.safetensors
+
+# Comet offline archives and generated results
+/logging/**
+!/logging/**/
+!/logging/**/.gitkeep
+/comet_logs/
+/lightning_logs/
+/results/**
+!/results/**/
+!/results/**/.gitkeep
