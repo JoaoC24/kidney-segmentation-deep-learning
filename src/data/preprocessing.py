@@ -30,7 +30,7 @@ def image_masking(image: np.ndarray) -> np.ndarray:
     if not finite.any():
         raise ValueError("Image contains no finite voxel values.")
 
-    # Otsu cannot handle NaNs. Non-finite voxels are excluded from the mask.
+
     threshold = threshold_otsu(image[finite])
     mask = (image > threshold) & finite
     mask = binary_fill_holes(mask)
@@ -193,7 +193,7 @@ def preprocess_directory(raw_dir: Path, output_dir: Path) -> list[Path]:
                 f"{image_name} {image.shape} vs {label_name} {label_array.shape}."
             )
         processed_image = preprocess_image(image)
-        # Labels are categorical data: preserve values and apply only spatial changes.
+
         image_path = image_dir / f"{index:04d}.npy"
         label_path = label_dir / f"{index:04d}.npy"
         np.save(image_path, processed_image)

@@ -15,7 +15,7 @@ VOLUME_SLICE_AXIS = 0
 TEST_SLICE_BATCH_SIZE = 32
 SAVE_INFERENCE_VOLUMES = True
 
-# Edit this path to choose the checkpoint tested by test_unet3p.py.
+
 CHECKPOINT_PATH = ROOT_DIR / "ckpts" / "best" / "unet3p.ckpt"
 
 METRICS_DIR = ROOT_DIR / "results" / "metrics" / "unet3p"

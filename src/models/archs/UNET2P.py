@@ -68,7 +68,7 @@ class UNET2P(nn.Module):
 
         for j in range(1, last_branch + 1):
             for i in range(last_branch - j + 1):
-                up = self.upsamples[i + 1][j - 1](values[i + 1][j - 1]) # vai buscar o valor do no abaixo, dá upsample
+                up = self.upsamples[i + 1][j - 1](values[i + 1][j - 1])
                 cat = torch.cat([up, *[values[i][k] for k in range(j)]], dim=1)
                 values[i][j] = self.nodes[i][j](cat)
 
@@ -89,5 +89,3 @@ if __name__ == "__main__":
 
     out = model(x)
     print(isinstance(out[0],torch.Tensor))
-    #print(out[-1].shape)
-    #print(model)

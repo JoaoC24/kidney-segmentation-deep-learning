@@ -42,16 +42,16 @@ class LitUNet3P(L.LightningModule):
         out_channels=num_classes,
         base_ch=base_ch,
         cat_ch=cat_ch,
-        deep_supervision=True, # decidido: nao tem sentido ser False, senao era igual à Unet normal
+        deep_supervision=True,
         )
-        
+
         if self.loss == "Focal_Dice":
             self.loss_fn = DiceFocalLoss(
                 gamma=gamma,
                 class_weights=class_weights,
             )
             self.gamma = gamma
-        else: # atençao ao binary ou nao binary CE
+        else:
             self.loss_fn = CrossEntropyDiceLoss(
                 class_weights=class_weights,
                 ce_weight=ce_weight,
@@ -82,7 +82,7 @@ class LitUNet3P(L.LightningModule):
     def validation_step(self, batch, batch_idx):
         self._shared_step(batch, stage="val")
 
-    def test_step(self, batch, batch_idx): # rever esta depois
+    def test_step(self, batch, batch_idx):
         images, masks = batch
         outputs = self(images)
         logits = self._inference_logits(outputs)
@@ -156,7 +156,7 @@ class LitUNet3P(L.LightningModule):
         stacked_outputs.device,
         stacked_outputs.dtype,
         )
-        return torch.sum(stacked_outputs * weights.view(-1, 1, 1, 1, 1), dim=0) # obriga o shape (B,C,H,W) por causa da view
+        return torch.sum(stacked_outputs * weights.view(-1, 1, 1, 1, 1), dim=0)
 
     def _deep_supervision_weights(
         self,
@@ -211,11 +211,11 @@ class LitUNet3P(L.LightningModule):
             tags = ["UNet3+", tag_classes, tag_opt, tag_loss]
             experiment.add_tags(tags)
 
-    def configure_optimizers(self): # rever optimizers e schedulers em todos os modelos depois
+    def configure_optimizers(self):
         if self.opt == "SGD":
             optimizer = torch.optim.SGD(
                 self.parameters(),
-                lr=self.lr,  # Make sure this is tuned higher for SGD!
+                lr=self.lr,
                 momentum=0.9,
                 nesterov=True,
                 weight_decay=self.weight_decay
@@ -225,7 +225,7 @@ class LitUNet3P(L.LightningModule):
                 self.parameters(),
                 lr=self.lr,
                 weight_decay=self.weight_decay)
-            
+
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
         mode="max",

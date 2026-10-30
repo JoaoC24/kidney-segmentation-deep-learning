@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-     
+
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -13,7 +13,7 @@ class ConvBlock(nn.Module):
 
     def forward(self, x):
         return self.block(x)
-    
+
 class DoubleConv(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, norm: bool | None = True, dropout: float = 0.0):
         super().__init__()
@@ -23,18 +23,18 @@ class DoubleConv(nn.Module):
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.ReLU(inplace=True),
         ]
-        
+
         if norm:
             layers.insert(1, nn.BatchNorm2d(out_channels))
             layers.insert(4, nn.BatchNorm2d(out_channels))
-        
+
         if dropout > 0:
             layers.append(nn.Dropout2d(dropout))
         self.block = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.block(x)
-    
+
 
 class ResizeProject(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -45,8 +45,8 @@ class ResizeProject(nn.Module):
         if x.shape[-2:] != target_size:
             x = F.interpolate(x, size=target_size, mode="bilinear", align_corners=False)
         return self.project(x)
-    
-class EncoderBlock(nn.Module): #transunet, sem necessidade talvez
+
+class EncoderBlock(nn.Module):
     def __init__(self, in_channels: int, out_channels: int):
         super().__init__()
         self.conv = DoubleConv(in_channels, out_channels)
@@ -57,7 +57,7 @@ class EncoderBlock(nn.Module): #transunet, sem necessidade talvez
         down = self.pool(skip)
         return skip, down
 
-class DecoderBlock(nn.Module): # trasunet, dá jeito este
+class DecoderBlock(nn.Module):
     def __init__(self, in_channels: int, skip_channels: int, out_channels: int):
         super().__init__()
         self.up = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
@@ -68,4 +68,3 @@ class DecoderBlock(nn.Module): # trasunet, dá jeito este
         if x.shape[-2:] != skip.shape[-2:]:
             x = F.interpolate(x, size=skip.shape[-2:], mode="bilinear", align_corners=False)
         return self.conv(torch.cat([x, skip], dim=1))
-    

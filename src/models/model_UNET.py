@@ -12,18 +12,18 @@ class LitUNet(L.LightningModule):
         input_channels: int = 1,
         num_classes: int = 2,
         lr: float = 1e-3,
-        weight_decay: float = 1e-4, # 
-        class_weights: tuple[float, float] = (0.25, 1.0), # pesos dados à loss para o BCE balancear as classes
+        weight_decay: float = 1e-4,
+        class_weights: tuple[float, float] = (0.25, 1.0),
         gamma: float | None = 2.0,
         ce_weight: float = 1.0,
         dice_weight: float = 1.0,
-        #in_channels: int | None = None,
+
         loss: str | None = "BCE_Dice",
         opt: str | None = "AdamW"
     ):
         super().__init__()
         if num_classes != 2:
-            raise ValueError("Setup fixed to two output classes.") # depois introduzir a opçao de multiclass
+            raise ValueError("Setup fixed to two output classes.")
 
         self.save_hyperparameters()
         self.lr = lr
@@ -32,8 +32,8 @@ class LitUNet(L.LightningModule):
         self.loss = loss
         self.num_classes = num_classes
         self.class_weights = class_weights
-        #if in_channels is not None: # useless
-        #    input_channels = in_channels
+
+
 
         self.network = UNET(
         in_channels=input_channels,
@@ -46,8 +46,8 @@ class LitUNet(L.LightningModule):
                 class_weights=class_weights,
             )
             self.gamma = gamma
-            
-        else: # atençao ao binary ou nao binary CE
+
+        else:
             self.loss_fn = CrossEntropyDiceLoss(
                 class_weights=class_weights,
                 ce_weight=ce_weight,
@@ -77,8 +77,8 @@ class LitUNet(L.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         self._shared_step(batch, stage="val")
-        
-    def test_step(self, batch, batch_idx): # se calhar dava pra juntar o shared aqui ainda
+
+    def test_step(self, batch, batch_idx):
         images, masks = batch
         logits = self(images)
         loss = self.loss_fn(logits, masks)
@@ -112,7 +112,7 @@ class LitUNet(L.LightningModule):
 
         preds = torch.argmax(logits, dim=1)
 
-        dice_metric = getattr(self, f"{stage}_dice") # automatizar train e val
+        dice_metric = getattr(self, f"{stage}_dice")
         iou_metric = getattr(self, f"{stage}_iou")
         dice_metric.update(preds, masks)
         iou_metric.update(preds, masks)
@@ -131,9 +131,9 @@ class LitUNet(L.LightningModule):
         images = batch[0] if isinstance(batch, (tuple, list)) else batch
         logits = self(images)
         return {
-        "logits": logits, # raw digits
-        "probabilities": torch.softmax(logits, dim=1), # entre 0 - 1
-        "masks": torch.argmax(logits, dim=1), # 0s e 1s
+        "logits": logits,
+        "probabilities": torch.softmax(logits, dim=1),
+        "masks": torch.argmax(logits, dim=1),
         }
 
     def on_train_start(self):
@@ -142,14 +142,14 @@ class LitUNet(L.LightningModule):
             tag_opt = self.opt if self.opt == "SGD" else "AdamW"
             tag_loss = self.loss if self.loss == "Focal_Dice" else "BCE_Dice"
             tag_classes = "Binary" if self.num_classes < 3 else "Multiclass"
-            tags = ["UNet", tag_classes, tag_opt, tag_loss] # compor estas strings todas
+            tags = ["UNet", tag_classes, tag_opt, tag_loss]
             experiment.add_tags(tags)
 
     def configure_optimizers(self):
         if self.opt == "SGD":
             optimizer = torch.optim.SGD(
                 self.parameters(),
-                lr=self.lr,  # Make sure this is tuned higher for SGD!
+                lr=self.lr,
                 momentum=0.9,
                 nesterov=True,
                 weight_decay=self.weight_decay
@@ -159,7 +159,7 @@ class LitUNet(L.LightningModule):
                 self.parameters(),
                 lr=self.lr,
                 weight_decay=self.weight_decay)
-            
+
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
         mode="max",
@@ -170,7 +170,7 @@ class LitUNet(L.LightningModule):
         "optimizer": optimizer,
         "lr_scheduler": {
                 "scheduler": scheduler,
-                "monitor": "val_dice", # monitor do scheduler: 5 epochs de paciencia e divide por 2 o lr
+                "monitor": "val_dice",
                 "interval": "epoch",
                 "frequency": 1,
         },

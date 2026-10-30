@@ -32,7 +32,7 @@ class CrossEntropyDiceLoss(nn.Module):
         ce = F.cross_entropy(logits, target, weight=self.class_weights)
 
         probs = torch.softmax(logits, dim=1)[:, 1]
-        foreground = (target == 1).float() # tirar possiveis valores != 1
+        foreground = (target == 1).float()
         intersection = torch.sum(probs * foreground, dim=(1, 2))
         denominator = torch.sum(probs + foreground, dim=(1, 2))
         dice = (2.0 * intersection + self.smooth) / (denominator + self.smooth)
@@ -55,10 +55,10 @@ class DiceFocalLoss(nn.Module):
         include_background_in_dice: bool = False,
     ):
         super(DiceFocalLoss, self).__init__()
-        self.alpha = alpha          # Weight for Dice Loss
-        self.beta = beta            # Weight for Focal Loss
-        self.gamma = gamma          # Focal Loss focusing parameter
-        self.smooth = smooth        # Avoid division by zero
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.smooth = smooth
         self.include_background_in_dice = include_background_in_dice
         if class_weights is None:
             self.class_weights = None
@@ -98,19 +98,19 @@ class DiceFocalLoss(nn.Module):
         prob_flat = prob.reshape(prob.shape[0], num_classes, -1)
         target_flat = target_one_hot.reshape(target_one_hot.shape[0], num_classes, -1)
 
-        # ----------------------------------------
-        # PART A: Multi-class DICE LOSS
-        # ----------------------------------------
+
+
+
         dice_start_class = 0 if self.include_background_in_dice else 1
         dice_prob_flat = prob_flat[:, dice_start_class:]
         dice_target_flat = target_flat[:, dice_start_class:]
 
         intersection = torch.sum(dice_prob_flat * dice_target_flat, dim=-1)
         denominator = torch.sum(dice_prob_flat, dim=-1) + torch.sum(dice_target_flat, dim=-1)
-        
+
         dice_per_class = 1.0 - (2.0 * intersection + self.smooth) / (denominator + self.smooth)
-        
-        # Apply class weights to Dice if provided
+
+
         if class_weights is not None:
             weights = class_weights[dice_start_class:].to(pred.device)
             weighted_dice = dice_per_class * weights.view(1, -1)
@@ -118,9 +118,9 @@ class DiceFocalLoss(nn.Module):
         else:
             dice_loss = torch.mean(dice_per_class)
 
-        # ----------------------------------------
-        # PART B: FOCAL LOSS
-        # ----------------------------------------
+
+
+
         log_prob = F.log_softmax(pred, dim=1)
         target_log_prob = log_prob.gather(1, target_indices.unsqueeze(1)).squeeze(1)
         target_prob = target_log_prob.exp()
@@ -132,17 +132,17 @@ class DiceFocalLoss(nn.Module):
         else:
             focal_loss = focal_per_pixel.mean()
 
-        # ----------------------------------------
-        # PART C: COMPOUND LOSS WEIGHTING
-        # ----------------------------------------
+
+
+
         total_loss = (self.alpha * dice_loss) + (self.beta * focal_loss)
-        
+
         return total_loss
 
 def init_weights_kaiming(module: nn.Module) -> None:
     if isinstance(module, (nn.Conv2d, nn.ConvTranspose2d)):
-        if module.kernel_size == (1, 1) and module.out_channels <= 3: 
-            # Use linear/identity gain because there's no ReLU after this layer
+        if module.kernel_size == (1, 1) and module.out_channels <= 3:
+
             nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='linear')
         else:
             nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")

@@ -9,7 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import comet_ml  # import antes do torch/lightning
+import comet_ml
 import lightning as L
 from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
@@ -165,7 +165,7 @@ if __name__ == "__main__":
                         if dice_weight is not None:
                             parameters["dice_weight"] = dice_weight
 
-                    # Recreate the module for each run so every fit starts from a clean data setup.
+
                     datamodule = MyDataModule(
                         data_dir=config.DATA_DIR,
                         multiclass=config.NUM_CLASSES > 2,

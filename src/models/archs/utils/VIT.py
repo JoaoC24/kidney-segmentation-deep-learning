@@ -263,11 +263,11 @@ if __name__ == "__main__":
     model = VisionTransformerFeatureMap(
         in_channels=1,
         image_size=128,
-        #num_patches=64,
+
         embed_dim=256,
         depth=1,
         num_heads=8,
-        #out_channels=128,
+
     )
     x = torch.randn(2, 1, 128, 128)
     y = model(x)

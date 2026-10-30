@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 
 def window_partition(x: torch.Tensor, window_size: int) -> torch.Tensor:
-    # divide a imagem em windows sem overlapp entre elas; retorna a shape (num_windows*B, window_size, window_size, C)
+
     batch, height, width, channels = x.shape
     x = x.view(
         batch,
@@ -25,7 +25,7 @@ def window_reverse(
     width: int,
     batch: int,
 ) -> torch.Tensor:
-    # reverte a separaçao em windows; retorna uma imagem que é resultado da uniao das windows separadas (B, H, W, C)
+
     x = windows.view(
         batch,
         height // window_size,
@@ -38,10 +38,10 @@ def window_reverse(
     return x.view(batch, height, width, -1)
 
 
-class MLP(nn.Module): # multi layer perceptron (feed forward)
-    def __init__(self, dim: int, mlp_ratio: float = 4.0, dropout: float = 0.0): # dim sao os canais do input (igual ao output)
+class MLP(nn.Module):
+    def __init__(self, dim: int, mlp_ratio: float = 4.0, dropout: float = 0.0):
         super().__init__()
-        hidden_dim = int(dim * mlp_ratio) # dimensions da hidden layer
+        hidden_dim = int(dim * mlp_ratio)
         self.net = nn.Sequential(
             nn.Linear(dim, hidden_dim),
             nn.GELU(),
@@ -55,24 +55,24 @@ class MLP(nn.Module): # multi layer perceptron (feed forward)
 
 
 class WindowAttention(nn.Module):
-    # Core attention mechanism, but applied inside each window (just like MHSA in the VIT)
+
     def __init__(
         self,
-        dim: int, # numero de canais
-        window_size: int, # lado da window
-        num_heads: int, # por causa da multi head attention
+        dim: int,
+        window_size: int,
+        num_heads: int,
         attention_dropout: float = 0.0,
         projection_dropout: float = 0.0,
     ):
         super().__init__()
-        if dim % num_heads != 0: # dimensoes dos embeddings tem de dividir bem pelo numero de cabeças multihead
+        if dim % num_heads != 0:
             raise ValueError("dim must be divisible by num_heads.")
 
         self.dim = dim
         self.window_size = window_size
         self.num_heads = num_heads
-        self.head_dim = dim // num_heads # quantidade de dimensoes de cada embedding por cabeça da multihead att
-        self.scale = self.head_dim**-0.5 # para dividir (estabilidade numerica)
+        self.head_dim = dim // num_heads
+        self.scale = self.head_dim**-0.5
 
         self.relative_position_bias_table = nn.Parameter(
             torch.zeros((2 * window_size - 1) * (2 * window_size - 1), num_heads)
@@ -89,7 +89,7 @@ class WindowAttention(nn.Module):
         relative_position_index = relative_coords.sum(-1)
         self.register_buffer("relative_position_index", relative_position_index)
 
-        self.qkv = nn.Linear(dim, dim * 3) # embedding -> Q, K e V
+        self.qkv = nn.Linear(dim, dim * 3)
         self.attn_drop = nn.Dropout(attention_dropout)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(projection_dropout)
@@ -97,12 +97,12 @@ class WindowAttention(nn.Module):
 
     def forward(self, x: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
         batch_windows, num_tokens, channels = x.shape
-        qkv = self.qkv(x) # calcular os Q, K e V
+        qkv = self.qkv(x)
         qkv = qkv.reshape(batch_windows, num_tokens, 3, self.num_heads, self.head_dim)
-        qkv = qkv.permute(2, 0, 3, 1, 4) # reorganizar (3, batch, num_heads, num_tokens, head_dim)
-        q, k, v = qkv.unbind(dim=0) # tal como no VIT, separar os 3 embeddings
+        qkv = qkv.permute(2, 0, 3, 1, 4)
+        q, k, v = qkv.unbind(dim=0)
 
-        attention = (q @ k.transpose(-2, -1)) * self.scale # calcular att
+        attention = (q @ k.transpose(-2, -1)) * self.scale
         relative_position_bias = self.relative_position_bias_table[
             self.relative_position_index.view(-1)
         ]

@@ -23,7 +23,7 @@ class LitClassifier(L.LightningModule):
         self.weight_decay = weight_decay
         self.opt = opt
         self.class_weights = class_weights
-                
+
         self.network = BinaryImageClassifier(
         in_channels=in_channels,
         base_channels=base_channels
@@ -31,7 +31,7 @@ class LitClassifier(L.LightningModule):
 
         pos_weight = torch.tensor([class_weights[1] / class_weights[0]], dtype=torch.float32)
         self.loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-        
+
         self.train_F1 = BinaryF1Score()
         self.train_acc = BinaryAccuracy()
         self.val_F1 = BinaryF1Score()
@@ -44,7 +44,7 @@ class LitClassifier(L.LightningModule):
         self.test_precision = BinaryPrecision()
         self.test_recall = BinaryRecall()
         self.test_auroc = BinaryAUROC()
-        
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.network(x)
 
@@ -53,14 +53,14 @@ class LitClassifier(L.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         self._shared_step(batch, stage="val")
-        
+
     def test_step(self, batch, batch_idx):
         images, classes = batch
         targets = classes.long()
         loss_targets = classes.float()
         logits = self(images)
         loss = self.loss_fn(logits, loss_targets)
-        probs = torch.sigmoid(logits).float() # dá a probabilidade entre 0 e 1 de pertencer à Class 1
+        probs = torch.sigmoid(logits).float()
 
         self.test_F1.update(probs, targets)
         self.test_acc.update(probs, targets)
@@ -115,19 +115,19 @@ class LitClassifier(L.LightningModule):
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         images = batch[0] if isinstance(batch, (tuple, list)) else batch
         return (torch.sigmoid(self(images)) >= 0.5).long()
-    
+
     def on_train_start(self):
         experiment = self.logger.experiment if self.logger else None
         if experiment and hasattr(experiment, "add_tags"):
             tag_opt = self.opt if self.opt == "SGD" else "AdamW"
-            tags = ["Classifier", tag_opt, "BCE"] # compor estas strings todas
+            tags = ["Classifier", tag_opt, "BCE"]
             experiment.add_tags(tags)
 
     def configure_optimizers(self):
         if self.opt == "SGD":
             optimizer = torch.optim.SGD(
                 self.parameters(),
-                lr=self.lr,  # Make sure this is tuned higher for SGD!
+                lr=self.lr,
                 momentum=0.9,
                 nesterov=True,
                 weight_decay=self.weight_decay
@@ -138,7 +138,7 @@ class LitClassifier(L.LightningModule):
                 lr=self.lr,
                 weight_decay=self.weight_decay)
 
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau( # rever o uso de scheduler
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
         mode="max",
         factor=0.5,
@@ -148,7 +148,7 @@ class LitClassifier(L.LightningModule):
         "optimizer": optimizer,
         "lr_scheduler": {
                 "scheduler": scheduler,
-                "monitor": "val_F1", # monitor do scheduler: 5 epochs de paciencia e divide por 2 o lr
+                "monitor": "val_F1",
                 "interval": "epoch",
                 "frequency": 1,
         },

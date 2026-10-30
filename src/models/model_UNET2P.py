@@ -50,14 +50,14 @@ class LitUNet2P(L.LightningModule):
         depth=depth,
         prune=prune,
         )
-        
+
         if self.loss == "Focal_Dice":
             self.loss_fn = DiceFocalLoss(
                 gamma=gamma,
                 class_weights=class_weights,
             )
             self.gamma = gamma
-        else: # atençao ao binary ou nao binary CE
+        else:
             self.loss_fn = CrossEntropyDiceLoss(
                 class_weights=class_weights,
                 ce_weight=ce_weight,
@@ -225,7 +225,7 @@ class LitUNet2P(L.LightningModule):
         if self.opt == "SGD":
             optimizer = torch.optim.SGD(
                 self.parameters(),
-                lr=self.lr,  # Make sure this is tuned higher for SGD!
+                lr=self.lr,
                 momentum=0.9,
                 nesterov=True,
                 weight_decay=self.weight_decay
@@ -235,7 +235,7 @@ class LitUNet2P(L.LightningModule):
                 self.parameters(),
                 lr=self.lr,
                 weight_decay=self.weight_decay)
-            
+
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
         mode="max",

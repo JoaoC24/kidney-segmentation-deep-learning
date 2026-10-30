@@ -56,15 +56,15 @@ class LitSwinUNet(L.LightningModule):
         dropout=dropout,
         attention_dropout=attention_dropout,
         )
-        
-        
+
+
         if self.loss == "Focal_Dice":
             self.loss_fn = DiceFocalLoss(
                 gamma=gamma,
                 class_weights=class_weights,
             )
             self.gamma = gamma
-        else: # atençao ao binary ou nao binary CE
+        else:
             self.loss_fn = CrossEntropyDiceLoss(
                 class_weights=class_weights,
                 ce_weight=ce_weight,
@@ -169,14 +169,14 @@ class LitSwinUNet(L.LightningModule):
             tag_opt = self.opt if self.opt == "SGD" else "AdamW"
             tag_loss = self.loss if self.loss == "Focal_Dice" else "BCE_Dice"
             tag_classes = "Binary" if self.num_classes < 3 else "Multiclass"
-            tags = ["SwinUNet", tag_classes, tag_opt, tag_loss] # compor estas strings todas
+            tags = ["SwinUNet", tag_classes, tag_opt, tag_loss]
             experiment.add_tags(tags)
 
     def configure_optimizers(self):
         if self.opt == "SGD":
             optimizer = torch.optim.SGD(
                 self.parameters(),
-                lr=self.lr,  # Make sure this is tuned higher for SGD!
+                lr=self.lr,
                 momentum=0.9,
                 nesterov=True,
                 weight_decay=self.weight_decay

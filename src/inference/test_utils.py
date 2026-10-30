@@ -150,8 +150,8 @@ class VolumeSegmentationTester(L.LightningModule):
         return pred, time.perf_counter() - start_time
 
     def _slice_logits(self, slices: torch.Tensor) -> torch.Tensor:
-        # U-Net++ selects inference branches from input slices; U-Net3+ selects
-        # from its already-computed deep-supervision outputs.
+
+
         if hasattr(self.model, "inference_prune"):
             return self.model._inference_logits(slices)
 

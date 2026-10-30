@@ -35,12 +35,12 @@ class ClassificationDataset(Dataset):
         self.label_dir = self.data_dir / "Labels"
         self.image_size = (image_size, image_size)
         self.augment = augment
-        
+
         if not self.image_dir.is_dir():
             raise FileNotFoundError(f"Image folder not found: {self.image_dir}")
         if not self.label_dir.is_dir():
             raise FileNotFoundError(f"Label folder not found: {self.label_dir}")
-        
+
         self.image_paths = sorted(self.image_dir.glob("*.npy"))
         self.label_paths = sorted(self.label_dir.glob("*.npy"))
 
@@ -59,27 +59,27 @@ class ClassificationDataset(Dataset):
         label_array = self._load_label(self.label_paths[index])
 
         image = self._resize_image(image)
-        
+
         label = (label_array > 0).any().astype(int)
-        
+
         if self.augment and torch.rand(()) < 0.5:
             image = torch.flip(image, dims=[-1])
-        
+
         return image, label
-        
+
     @staticmethod
     def _load_image(path: Path) -> torch.Tensor:
         array = np.load(path)
         if array.ndim != 2:
             raise ValueError(f"Loader: expected a 2D image array, got shape {array.shape}.")
-        return torch.from_numpy(array).float().unsqueeze(0)        
+        return torch.from_numpy(array).float().unsqueeze(0)
 
     def _load_label(self, path: Path) -> torch.Tensor:
         array = np.load(path)
         if array.ndim != 2:
             raise ValueError(f"Loader: expected a 2D label array, got shape {array.shape}.")
         return array
-    
+
     def _resize_image(self, image: torch.Tensor) -> torch.Tensor:
         image = image.unsqueeze(0)
         image = F.interpolate(image, size=self.image_size, mode="bilinear", align_corners=False)
@@ -105,7 +105,7 @@ class MyClassificationDataModule(L.LightningDataModule):
 
     def prepare_data(self):
         pass
-    
+
     def setup(self, stage=None):
         if stage in (None, "fit", "validate"):
             train_dir = self.data_dir / "train"
@@ -151,7 +151,7 @@ class MyClassificationDataModule(L.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            pin_memory=False,  # otimiza a transefrencia de dados CPU->GPU, mas aumenta a carga na RAM CPU
+            pin_memory=False,
             persistent_workers=config_persistent_workers(self.num_workers)
         )
 
@@ -161,7 +161,7 @@ class MyClassificationDataModule(L.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=False,
-            pin_memory=False,  # same as above
+            pin_memory=False,
             persistent_workers=config_persistent_workers(self.num_workers)
         )
 
@@ -184,12 +184,12 @@ class SegmentationDataset(Dataset):
         self.image_size = (image_size, image_size)
         self.multiclass = multiclass
         self.augment = augment
-        
+
         if not self.image_dir.is_dir():
             raise FileNotFoundError(f"Image folder not found: {self.image_dir}")
         if not self.label_dir.is_dir():
             raise FileNotFoundError(f"Label folder not found: {self.label_dir}")
-        
+
         self.image_paths = sorted(self.image_dir.glob("*.npy"))
         self.label_paths = sorted(self.label_dir.glob("*.npy"))
 
@@ -209,22 +209,22 @@ class SegmentationDataset(Dataset):
 
         image = self._resize_image(image)
         label = self._resize_label(label)
-        
+
         if self.augment and torch.rand(()) < 0.5:
-            image = torch.flip(image, dims=[-2]) # vertical
+            image = torch.flip(image, dims=[-2])
             label = torch.flip(label, dims=[-2])
             if not self.multiclass and torch.rand(()) < 0.5:
-                image = torch.flip(image, dims=[-1]) # horizontal
+                image = torch.flip(image, dims=[-1])
                 label = torch.flip(label, dims=[-1])
-        
+
         return image, label
-        
+
     @staticmethod
     def _load_image(path: Path) -> torch.Tensor:
         array = np.load(path)
         if array.ndim != 2:
             raise ValueError(f"Loader: expected a 2D image array, got shape {array.shape}.")
-        return torch.from_numpy(array).float().unsqueeze(0)        
+        return torch.from_numpy(array).float().unsqueeze(0)
 
     def _load_label(self, path: Path) -> torch.Tensor:
         array = np.load(path)
@@ -233,7 +233,7 @@ class SegmentationDataset(Dataset):
         if not self.multiclass:
             array = (array > 0).astype(np.int64)
         return torch.from_numpy(array).long()
-    
+
     def _resize_image(self, image: torch.Tensor) -> torch.Tensor:
         image = image.unsqueeze(0)
         image = F.interpolate(image, size=self.image_size, mode="bilinear", align_corners=False)
@@ -242,7 +242,7 @@ class SegmentationDataset(Dataset):
     def _resize_label(self, label: torch.Tensor) -> torch.Tensor:
         label = label.unsqueeze(0).unsqueeze(0).float()
         label = F.interpolate(label, size=self.image_size, mode="nearest")
-        return label.squeeze(0).squeeze(0).long() # without channel dimension
+        return label.squeeze(0).squeeze(0).long()
 
 
 class MyDataModule(L.LightningDataModule):
@@ -267,7 +267,7 @@ class MyDataModule(L.LightningDataModule):
 
     def prepare_data(self):
         pass
-    
+
     def setup(self, stage=None):
         if stage in (None, "fit", "validate"):
             train_dir = self.data_dir / "train"
@@ -315,7 +315,7 @@ class MyDataModule(L.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            pin_memory=False,  # otimiza a transefrencia de dados CPU->GPU, mas aumenta a carga na RAM CPU
+            pin_memory=False,
             persistent_workers=config_persistent_workers(self.num_workers)
         )
 
@@ -325,7 +325,7 @@ class MyDataModule(L.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=False,
-            pin_memory=False,  # same as above
+            pin_memory=False,
             persistent_workers=config_persistent_workers(self.num_workers)
         )
 

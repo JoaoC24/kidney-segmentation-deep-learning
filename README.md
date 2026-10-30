@@ -25,6 +25,7 @@ then install the remaining project dependencies:
 ```bash
 python -m venv .venv
 # Activate the virtual environment for your shell, then:
+
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
