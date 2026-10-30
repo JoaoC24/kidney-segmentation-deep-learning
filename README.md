@@ -1,53 +1,63 @@
 # Kidney Segmentation with Deep Learning
 
-An end-to-end 2D deep learning workflow for segmenting kidney structures from
-3D medical image volumes. The project includes paired-volume preprocessing,
-slice-based model training, volume-level inference, and experiment/result
-logging.
+An end-to-end deep learning workflow for segmenting kidney structures from 3D medical image volumes. The project includes input volume preprocessing, slice-based model training, volume-level inference/evaluation, and experiment/result logging.
 
-## Models
+The best model achieved an average Dice score of 90.2% on the test data, and an inference time of 0.55 ms per MRI slice.
+Result discussions are cut short given existing non-disclosure policies.
+
+## Models (implemented based on:)
 
 - U-Net
 - U-Net++
-- U-Net 3+
+- U-Net3+
 - TransUNet
 - Swin-UNet
 - CNN image classifier
 
-The segmentation models are implemented in PyTorch and trained with PyTorch
-Lightning. Training and validation metrics are logged through Comet ML.
+The segmentation models are implemented in PyTorch and trained with PyTorch Lightning. Training and validation metrics are logged through Comet ML.
 
 ## Setup
 
-Use Python 3.10 or newer. Install PyTorch for your CPU or CUDA environment,
-then install the remaining project dependencies:
+Requires Python 3.10 or newer, PyTorch, and other dependencies that can be installed by running
 
 ```bash
-python -m venv .venv
-# Activate the virtual environment for your shell, then:
-
-python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Training uses Comet ML by default. Set `COMET_API_KEY` in the environment
-before starting training. To run without online Comet logging, set
-`COMET_ONLINE = False` in `src/configs/config_main.py`.
+inside the virtual environment.
+
+Training uses Comet ML by default. The cloud logging is dependent on `COMET_API_KEY`, which was redacted from the code before the push. To run without online Comet logging, `COMET_ONLINE = False` in `src/configs/config_main.py`.
+
+## Project structure
+
+```text
+src/
+├── configs/       # Shared, training, and inference configs and parameters
+├── data/          # Preprocessing, splitting, orientation, and datasets
+├── inference/     # Model evaluation, volume inference and result export
+├── models/        # Lightning modules and model architectures
+└── training/      # Model training entry points
+data/              # Local input and generated datasets (not committed)
+ckpts/             # Model checkpoints (not committed)
+results/           # Evaluation outputs (not committed)
+```
 
 ## Data layout and preparation
 
-Place each image and its corresponding label in alphabetically matching order
-under the raw input folders. Inputs may be NIfTI files or DICOM series.
-For DICOM, keep each 3D series together in its own subfolder under the
-corresponding `Images/` or `Labels/` directory.
+Data files were not pushed to the repository. The raw data consisted in paired Image and Label files (either DICOM or NIfTI format) obtained from 3 publicly available datasets containing MRI scan results. The preprocessing pipeline converts the format to numpy files (.np) for optimization reasons, and runs a series of operations:
 
 ```text
-data/raw/
-├── Images/
-└── Labels/
+-body mask extraction
+-N4 bias field correction
+-percentile clipping
+-foreground intensity normalization
+-standard volume reorientation
+-volume slicing
 ```
 
-Run these commands from the repository root, in order:
+The resulting dataset was splitted into training (+ validation) and testing with a 80/20 ratio.
+
+The execution was achieved by running these commands from the repository root, in order:
 
 ```bash
 python -m src.data.preprocessing
@@ -56,91 +66,34 @@ python -m src.data.data_split
 python -m src.data.volume_to_slices
 ```
 
-The scripts perform the following steps:
-
-1. Read paired image and label volumes in alphabetical order. Apply masking,
-   N4 bias correction, percentile clipping, and foreground normalization to
-   each image. Preserve label values and check that paired array shapes match.
-   Save matching numbered volumes in `data/interim/Images/` and `Labels/`.
-2. Move each pair's longest array axis to axis 0 in place, applying the same
-   axis move to the image and label.
-3. Split the volumes into train and test subsets using a seeded 80/20 split.
-   The volume pairs are saved under `data/preprocessed_volumes/`.
-4. Convert each volume into 2D slices along axis 0 and save paired slices under
-   `data/preprocessed_slices/`. Slice filenames retain the volume filename and
-   append a four-digit, one-based slice index.
-
-The split fraction and seed can be changed with `--test-fraction` and `--seed`
-when running `src.data.data_split`. Input and output directories can also be
-overridden with each script's command-line options; use `--help` for details.
+The split fraction and seed can be changed by the arguments `--test-fraction` and `--seed` when running `src.data.data_split`.
 
 ## Training
 
-Training datamodules read the 2D slices from `data/preprocessed_slices/`.
-Configuration defaults are in `src/configs/config_main.py`; model-specific
-training settings are in `src/configs/run_config.py`.
+Training datamodules load the 2D slices from `data/preprocessed_slices/`. Configuration defaults are stored in `src/configs/config_main.py`; model-specific training settings are saved in additional config files that are passed as arguments when running the training scripts. These files were redactes from the repository, but contain hyperparameter search spaces customized for each model architecture.
 
 For example, train U-Net with:
 
 ```bash
-python src/training/train_unet.py --config run_config
+python src/training/train_unet.py --config hyperparameter_search_config
 ```
 
-Other training scripts are available for U-Net++, U-Net 3+, TransUNet,
-Swin-UNet, and the classifier:
+Other training scripts are available for U-Net++, U-Net 3+, TransUNet, Swin-UNet, and the classifier:
 
-```text
-src/training/train_unet2p.py
-src/training/train_unet3p.py
-src/training/train_transunet.py
-src/training/train_swinunet.py
-src/training/train_class.py
-```
-
-Training saves Lightning checkpoints directly under `ckpts/` and logs to
-Comet ML. The early-stopping and checkpoint callbacks monitor validation Dice
-by default. Inference configs point under `ckpts/best/`; move the checkpoint
-you want to evaluate there and update its configured filename.
+Training saves Lightning checkpoints directly under `ckpts/` and logs to Comet ML. Early-stopping and checkpoint callbacks were implemented to control training sequences.
 
 ## Volume inference and evaluation
 
-Inference datamodules read the 3D test volumes from
-`data/preprocessed_volumes/test/`. Set the checkpoint path and other options
-in the matching file under `src/configs/inference_configs/`, then run a model's
-inference script from the repository root. For example:
+Inference datamodules read the 3D test volumes from `data/preprocessed_volumes/test/`. Set the checkpoint path and other options in the matching file under `src/configs/inference_configs/`, then run a model's inference script from the repository root. For example:
 
 ```bash
 python src/inference/test_unet.py --config unet_config
 ```
 
-Inference writes per-volume and summary CSV metrics under `results/metrics/`
-and `results/summaries/`. Predicted volumes are written under
-`results/images/` when enabled in the model's inference config.
+where unet_config.py contains the necessary model initialization parameters.
 
-## Project structure
+Inference writes per-volume and summary CSV metrics under `results/metrics/` and `results/summaries/`. Predicted volumes are saved under `results/images/` when enabled in the model's inference config.
 
-```text
-src/
-├── configs/       # Shared, training, and inference configuration
-├── data/          # Preprocessing, splitting, orientation, and datasets
-├── inference/     # Volume evaluation and result export
-├── models/        # Lightning modules and model architectures
-└── training/      # Model training entry points
-data/              # Local input and generated datasets (not committed)
-ckpts/             # Model checkpoints (not committed)
-results/           # Evaluation outputs (not committed)
-```
+## Note
 
-## Evaluation note
-
-The train/test split is performed by volume before slicing, which keeps a
-volume's slices within one of those two subsets. The current training
-datamodule then creates validation by randomly splitting the training slices.
-As a result, slices from the same volume can appear in both training and
-validation. Use volume-grouped validation before interpreting validation
-metrics as an independent estimate.
-
-## Data and checkpoints
-
-Medical image data, generated arrays, checkpoints, Comet archives, and result
-files are excluded from Git. Add only data that you are permitted to share.
+Medical image data, generated arrays, checkpoints, Comet archives, and result files are ignored by Git.
