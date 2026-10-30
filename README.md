@@ -5,6 +5,8 @@ An end-to-end deep learning workflow for segmenting kidney structures from 3D me
 The best model achieved an average Dice score of 90.2% on the test data, and an inference time of 0.55 ms per MRI slice.
 Result discussions are cut short given existing non-disclosure policies.
 
+![Segmentation result example](figs/img.jpg?raw=true "Title")
+
 ## Models (implemented based on:)
 
 - U-Net
